@@ -44,6 +44,7 @@ public class SettingsActivity extends AppCompatActivity {
         prefsManager = new PrefsManager(this);
 
         rootSettings = findViewById(R.id.rootSettings);
+        UiUtils.setupSystemBars(this, rootSettings, toolbar);
         etAdminCode = findViewById(R.id.etAdminCode);
         spDefaultLocation = findViewById(R.id.spDefaultLocation);
         swWifiOnlyLookup = findViewById(R.id.swWifiOnlyLookup);
@@ -132,5 +133,13 @@ public class SettingsActivity extends AppCompatActivity {
     public boolean onSupportNavigateUp() {
         finish();
         return true;
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            UiUtils.hideNavigationBar(this);
+        }
     }
 }

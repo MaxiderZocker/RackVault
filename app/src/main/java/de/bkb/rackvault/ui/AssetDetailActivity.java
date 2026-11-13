@@ -67,6 +67,7 @@ public class AssetDetailActivity extends AppCompatActivity {
         prefsManager = new PrefsManager(this);
 
         rootDetail = findViewById(R.id.rootDetail);
+        UiUtils.setupSystemBars(this, rootDetail, toolbar);
         tvDetailName = findViewById(R.id.tvDetailName);
         tvDetailStatusBadge = findViewById(R.id.tvDetailStatusBadge);
         tvDetailInventoryNumber = findViewById(R.id.tvDetailInventoryNumber);
@@ -92,6 +93,14 @@ public class AssetDetailActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         loadAssetDetails();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            UiUtils.hideNavigationBar(this);
+        }
     }
 
     private void loadAssetDetails() {

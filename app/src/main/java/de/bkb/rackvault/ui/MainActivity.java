@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         rootMain = findViewById(R.id.rootMain);
+        UiUtils.setupSystemBars(this, rootMain, toolbar);
         spFilterLocation = findViewById(R.id.spFilterLocation);
         spFilterStatus = findViewById(R.id.spFilterStatus);
         lvAssets = findViewById(R.id.lvAssets);
@@ -106,6 +107,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         refreshAssetList();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            UiUtils.hideNavigationBar(this);
+        }
     }
 
     private void refreshAssetList() {

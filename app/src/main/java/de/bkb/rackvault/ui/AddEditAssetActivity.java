@@ -54,6 +54,7 @@ public class AddEditAssetActivity extends AppCompatActivity {
         prefsManager = new PrefsManager(this);
 
         rootAddEdit = findViewById(R.id.rootAddEdit);
+        UiUtils.setupSystemBars(this, rootAddEdit, toolbar);
         etAssetName = findViewById(R.id.etAssetName);
         etInventoryNumber = findViewById(R.id.etInventoryNumber);
         spCategory = findViewById(R.id.spCategory);
@@ -187,5 +188,13 @@ public class AddEditAssetActivity extends AppCompatActivity {
     public boolean onSupportNavigateUp() {
         finish();
         return true;
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            UiUtils.hideNavigationBar(this);
+        }
     }
 }
