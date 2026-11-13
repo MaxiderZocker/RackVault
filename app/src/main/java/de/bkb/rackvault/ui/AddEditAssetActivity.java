@@ -16,6 +16,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 
 import de.bkb.rackvault.R;
+import de.bkb.rackvault.data.DatabaseHelper;
 import de.bkb.rackvault.data.PrefsManager;
 import de.bkb.rackvault.model.Asset;
 
@@ -36,6 +37,7 @@ public class AddEditAssetActivity extends AppCompatActivity {
     private SwitchMaterial swDefect;
     private TextInputEditText etNotes;
     private PrefsManager prefsManager;
+    private DatabaseHelper dbHelper;
 
     private long editingAssetId = -1L;
     private Asset existingAsset;
@@ -52,6 +54,7 @@ public class AddEditAssetActivity extends AppCompatActivity {
         }
 
         prefsManager = new PrefsManager(this);
+        dbHelper = new DatabaseHelper(this);
 
         rootAddEdit = findViewById(R.id.rootAddEdit);
         UiUtils.setupSystemBars(this, rootAddEdit, toolbar);
@@ -69,7 +72,7 @@ public class AddEditAssetActivity extends AppCompatActivity {
 
         editingAssetId = getIntent().getLongExtra(EXTRA_ASSET_ID, -1L);
         if (editingAssetId > 0) {
-            existingAsset = MainActivity.findAssetById(editingAssetId);
+            existingAsset = dbHelper.getAssetById(editingAssetId);
             if (existingAsset != null) {
                 if (getSupportActionBar() != null) {
                     getSupportActionBar().setTitle(R.string.title_edit_asset);
@@ -148,6 +151,12 @@ public class AddEditAssetActivity extends AppCompatActivity {
                 etInventoryNumber.requestFocus();
             }
             hasError = true;
+        } else if (dbHelper.isInventoryNumberTaken(inventoryNumber, editingAssetId)) {
+            etInventoryNumber.setError("Inventarnummer ist bereits vergeben");
+            if (!hasError) {
+                etInventoryNumber.requestFocus();
+            }
+            hasError = true;
         } else {
             etInventoryNumber.setError(null);
         }
@@ -173,7 +182,7 @@ public class AddEditAssetActivity extends AppCompatActivity {
             asset.setStatus(Asset.STATUS_VERFUEGBAR);
         }
 
-        MainActivity.saveAsset(asset);
+        dbHelper.saveAsset(asset, prefsManager.getAdminCode());
         Toast.makeText(this,
                 existingAsset != null ? "Gerät aktualisiert" : "Gerät gespeichert",
                 Toast.LENGTH_SHORT).show();

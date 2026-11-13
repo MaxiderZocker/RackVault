@@ -17,6 +17,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 
 import de.bkb.rackvault.R;
+import de.bkb.rackvault.data.DatabaseHelper;
 import de.bkb.rackvault.data.PrefsManager;
 
 /**
@@ -29,6 +30,7 @@ public class SettingsActivity extends AppCompatActivity {
     private Spinner spDefaultLocation;
     private SwitchMaterial swWifiOnlyLookup;
     private PrefsManager prefsManager;
+    private DatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +44,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         prefsManager = new PrefsManager(this);
+        dbHelper = new DatabaseHelper(this);
 
         rootSettings = findViewById(R.id.rootSettings);
         UiUtils.setupSystemBars(this, rootSettings, toolbar);
@@ -110,8 +113,8 @@ public class SettingsActivity extends AppCompatActivity {
                 .setTitle("Demo-Daten laden")
                 .setMessage("Sollen die Demo-Geräte neu geladen werden? Aktuelle Teständerungen werden dabei zurückgesetzt.")
                 .setPositiveButton("Laden", (dialog, which) -> {
-                    MainActivity.resetToDemoData();
-                    Snackbar.make(rootSettings, "Demo-Daten geladen.", Snackbar.LENGTH_SHORT).show();
+                    dbHelper.resetToDemoData();
+                    Snackbar.make(rootSettings, "Demo-Daten in SQLite geladen.", Snackbar.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Abbrechen", null)
                 .show();
@@ -122,8 +125,8 @@ public class SettingsActivity extends AppCompatActivity {
                 .setTitle("Datenbank zurücksetzen")
                 .setMessage("Sollen wirklich alle Geräte und Ausleih-Einträge unwiderruflich gelöscht werden?")
                 .setPositiveButton("Alles löschen", (dialog, which) -> {
-                    MainActivity.clearAllData();
-                    Snackbar.make(rootSettings, "Inventar vollständig geleert.", Snackbar.LENGTH_SHORT).show();
+                    dbHelper.clearAllData();
+                    Snackbar.make(rootSettings, "SQLite-Datenbank vollständig geleert.", Snackbar.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Abbrechen", null)
                 .show();

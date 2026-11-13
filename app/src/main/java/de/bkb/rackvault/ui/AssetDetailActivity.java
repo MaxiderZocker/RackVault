@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.bkb.rackvault.R;
+import de.bkb.rackvault.data.DatabaseHelper;
 import de.bkb.rackvault.data.PrefsManager;
 import de.bkb.rackvault.model.Asset;
 import de.bkb.rackvault.model.LoanLog;
@@ -49,6 +50,7 @@ public class AssetDetailActivity extends AppCompatActivity {
     private LoanLogAdapter loanLogAdapter;
     private final List<LoanLog> loanLogs = new ArrayList<>();
     private PrefsManager prefsManager;
+    private DatabaseHelper dbHelper;
 
     private long assetId = -1L;
     private Asset currentAsset;
@@ -65,6 +67,7 @@ public class AssetDetailActivity extends AppCompatActivity {
         }
 
         prefsManager = new PrefsManager(this);
+        dbHelper = new DatabaseHelper(this);
 
         rootDetail = findViewById(R.id.rootDetail);
         UiUtils.setupSystemBars(this, rootDetail, toolbar);
@@ -104,7 +107,7 @@ public class AssetDetailActivity extends AppCompatActivity {
     }
 
     private void loadAssetDetails() {
-        currentAsset = MainActivity.findAssetById(assetId);
+        currentAsset = dbHelper.getAssetById(assetId);
         if (currentAsset == null) {
             Toast.makeText(this, "Gerät nicht gefunden", Toast.LENGTH_SHORT).show();
             finish();
@@ -144,7 +147,7 @@ public class AssetDetailActivity extends AppCompatActivity {
         updateActionButton();
 
         loanLogs.clear();
-        loanLogs.addAll(MainActivity.getLoanLogsForAsset(assetId));
+        loanLogs.addAll(dbHelper.getLoanLogsForAsset(assetId));
         loanLogAdapter.notifyDataSetChanged();
     }
 
@@ -166,7 +169,7 @@ public class AssetDetailActivity extends AppCompatActivity {
             return;
         }
         if (Asset.STATUS_AUSGELIEHEN.equals(currentAsset.getStatus())) {
-            MainActivity.returnAsset(currentAsset.getId(), prefsManager.getAdminCode());
+            dbHelper.returnAsset(currentAsset.getId(), prefsManager.getAdminCode());
             loadAssetDetails();
             Snackbar.make(rootDetail, "Rückgabe verbucht.", Snackbar.LENGTH_SHORT).show();
         } else if (Asset.STATUS_VERFUEGBAR.equals(currentAsset.getStatus())) {
@@ -202,7 +205,7 @@ public class AssetDetailActivity extends AppCompatActivity {
                     return;
                 }
 
-                MainActivity.borrowAsset(currentAsset.getId(), borrower, comment, prefsManager.getAdminCode());
+                dbHelper.borrowAsset(currentAsset.getId(), borrower, comment, prefsManager.getAdminCode());
                 dialog.dismiss();
                 loadAssetDetails();
                 Snackbar.make(rootDetail, "Ausgeliehen an " + borrower, Snackbar.LENGTH_SHORT).show();
@@ -242,7 +245,7 @@ public class AssetDetailActivity extends AppCompatActivity {
                 .setTitle("Gerät löschen")
                 .setMessage("Soll \"" + currentAsset.getName() + "\" wirklich gelöscht werden?")
                 .setPositiveButton("Löschen", (dialog, which) -> {
-                    MainActivity.deleteAsset(currentAsset.getId());
+                    dbHelper.deleteAsset(currentAsset.getId());
                     Toast.makeText(this, "Gerät gelöscht", Toast.LENGTH_SHORT).show();
                     finish();
                 })
