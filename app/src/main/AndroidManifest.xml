@@ -41,6 +41,11 @@
             android:exported="false"
             android:parentActivityName=".ui.SettingsActivity" />
 
+        <activity
+            android:name=".ui.ManageListActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.SettingsActivity" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

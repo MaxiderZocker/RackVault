@@ -18,6 +18,8 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.util.List;
+
 import de.bkb.rackvault.R;
 import de.bkb.rackvault.data.CsvExporter;
 import de.bkb.rackvault.data.DatabaseHelper;
@@ -59,6 +61,8 @@ public class SettingsActivity extends AppCompatActivity {
 
         MaterialButton btnSaveSettings = findViewById(R.id.btnSaveSettings);
         MaterialButton btnOpenInvPatternSubmenu = findViewById(R.id.btnOpenInvPatternSubmenu);
+        MaterialButton btnOpenLocationsSubmenu = findViewById(R.id.btnOpenLocationsSubmenu);
+        MaterialButton btnOpenCategoriesSubmenu = findViewById(R.id.btnOpenCategoriesSubmenu);
         MaterialButton btnExportCsv = findViewById(R.id.btnExportCsv);
         MaterialButton btnLoadDemoData = findViewById(R.id.btnLoadDemoData);
         MaterialButton btnResetDatabase = findViewById(R.id.btnResetDatabase);
@@ -69,6 +73,16 @@ public class SettingsActivity extends AppCompatActivity {
         btnSaveSettings.setOnClickListener(v -> saveSettings());
         btnOpenInvPatternSubmenu.setOnClickListener(v ->
                 startActivity(new Intent(this, InventoryPatternActivity.class)));
+        btnOpenLocationsSubmenu.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ManageListActivity.class);
+            intent.putExtra(ManageListActivity.EXTRA_LIST_TYPE, ManageListActivity.TYPE_LOCATIONS);
+            startActivity(intent);
+        });
+        btnOpenCategoriesSubmenu.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ManageListActivity.class);
+            intent.putExtra(ManageListActivity.EXTRA_LIST_TYPE, ManageListActivity.TYPE_CATEGORIES);
+            startActivity(intent);
+        });
         btnExportCsv.setOnClickListener(v ->
                 CsvExporter.exportAndShowSnackbar(this, rootSettings, dbHelper.getAllAssets()));
         btnLoadDemoData.setOnClickListener(v -> confirmLoadDemoData());
@@ -78,17 +92,26 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        refreshLocationSpinner();
         updateInvPatternSummary();
     }
 
     private void loadCurrentSettings() {
         etAdminCode.setText(prefsManager.getAdminCode());
         swWifiOnlyLookup.setChecked(prefsManager.isWifiOnlyLookup());
+        refreshLocationSpinner();
+    }
+
+    private void refreshLocationSpinner() {
+        List<String> locations = prefsManager.getLocations();
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, locations);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spDefaultLocation.setAdapter(adapter);
         selectLocationSpinner(prefsManager.getDefaultLocation());
     }
 
     private void updateInvPatternSummary() {
-        String[] categories = getResources().getStringArray(R.array.categories_array);
+        List<String> categories = prefsManager.getCategories();
         int customCount = 0;
         for (String category : categories) {
             if (prefsManager.hasCategoryInventoryPattern(category)) {
@@ -96,18 +119,17 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
         String summary = "Globales Format: " + prefsManager.getGlobalInventoryPattern()
-                + " · Eigene Kategorie-Formate: " + customCount + "/" + categories.length;
+                + " · Eigene Kategorie-Formate: " + customCount + "/" + categories.size();
         tvInvPatternSummary.setText(summary);
     }
 
-    @SuppressWarnings("unchecked")
     private void selectLocationSpinner(String location) {
         if (location == null || spDefaultLocation.getAdapter() == null) {
             return;
         }
-        ArrayAdapter<CharSequence> adapter = (ArrayAdapter<CharSequence>) spDefaultLocation.getAdapter();
+        ArrayAdapter<?> adapter = (ArrayAdapter<?>) spDefaultLocation.getAdapter();
         for (int i = 0; i < adapter.getCount(); i++) {
-            CharSequence item = adapter.getItem(i);
+            Object item = adapter.getItem(i);
             if (item != null && location.equals(item.toString())) {
                 spDefaultLocation.setSelection(i);
                 return;

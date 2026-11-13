@@ -7,6 +7,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -25,6 +26,7 @@ import java.util.List;
 import de.bkb.rackvault.R;
 import de.bkb.rackvault.data.CsvExporter;
 import de.bkb.rackvault.data.DatabaseHelper;
+import de.bkb.rackvault.data.PrefsManager;
 import de.bkb.rackvault.model.Asset;
 
 /**
@@ -42,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private AssetListAdapter assetAdapter;
     private final List<Asset> displayedAssets = new ArrayList<>();
     private DatabaseHelper dbHelper;
+    private PrefsManager prefsManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         dbHelper = new DatabaseHelper(this);
+        prefsManager = new PrefsManager(this);
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -66,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
         assetAdapter = new AssetListAdapter(this, displayedAssets);
         lvAssets.setAdapter(assetAdapter);
         registerForContextMenu(lvAssets);
+        refreshLocationFilterSpinner();
 
         AdapterView.OnItemSelectedListener filterListener = new AdapterView.OnItemSelectedListener() {
             @Override
@@ -97,7 +102,25 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        refreshLocationFilterSpinner();
         refreshAssetList();
+    }
+
+    private void refreshLocationFilterSpinner() {
+        String currentSelection = spFilterLocation.getSelectedItem() != null
+                ? spFilterLocation.getSelectedItem().toString()
+                : "Alle";
+
+        List<String> filterOptions = new ArrayList<>();
+        filterOptions.add("Alle");
+        filterOptions.addAll(prefsManager.getLocations());
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, filterOptions);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spFilterLocation.setAdapter(adapter);
+
+        int idx = filterOptions.indexOf(currentSelection);
+        spFilterLocation.setSelection(Math.max(0, idx), false);
     }
 
     @Override

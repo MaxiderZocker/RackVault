@@ -102,6 +102,9 @@ public class AddEditAssetActivity extends AppCompatActivity {
         pbMacLookup = findViewById(R.id.pbMacLookup);
         MaterialButton btnSaveAsset = findViewById(R.id.btnSaveAsset);
 
+        populateDynamicSpinner(spCategory, prefsManager.getCategories());
+        populateDynamicSpinner(spLocation, prefsManager.getLocations());
+
         editingAssetId = getIntent().getLongExtra(EXTRA_ASSET_ID, -1L);
         if (editingAssetId > 0) {
             existingAsset = dbHelper.getAssetById(editingAssetId);
@@ -334,14 +337,20 @@ public class AddEditAssetActivity extends AppCompatActivity {
         etNotes.setText(asset.getNotes());
     }
 
-    @SuppressWarnings("unchecked")
+    private void populateDynamicSpinner(Spinner spinner, List<String> items) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, items);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+    }
+
     private void selectSpinnerValue(Spinner spinner, String value) {
         if (value == null || spinner.getAdapter() == null) {
             return;
         }
-        ArrayAdapter<CharSequence> adapter = (ArrayAdapter<CharSequence>) spinner.getAdapter();
+        ArrayAdapter<?> adapter = (ArrayAdapter<?>) spinner.getAdapter();
         for (int i = 0; i < adapter.getCount(); i++) {
-            if (value.equals(adapter.getItem(i) != null ? adapter.getItem(i).toString() : null)) {
+            Object item = adapter.getItem(i);
+            if (item != null && value.equals(item.toString())) {
                 spinner.setSelection(i);
                 return;
             }

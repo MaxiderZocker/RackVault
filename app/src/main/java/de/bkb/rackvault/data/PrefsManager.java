@@ -3,14 +3,20 @@ package de.bkb.rackvault.data;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Kapselt den Zugriff auf {@link SharedPreferences} für persistente App-Standardwerte
- * und die Konfiguration der fortlaufenden Inventarnummern.
+ * Kapselt den Zugriff auf {@link SharedPreferences} für persistente App-Standardwerte,
+ * konfigurierbare Kategorien/Standorte und fortlaufende Inventarnummern.
  */
 public class PrefsManager {
 
@@ -20,11 +26,19 @@ public class PrefsManager {
     public static final String KEY_WIFI_ONLY_LOOKUP = "pref_wifi_only_lookup";
     public static final String KEY_INV_PATTERN_GLOBAL = "pref_inv_pattern_global";
     public static final String KEY_INV_PATTERN_CATEGORY_PREFIX = "pref_inv_pattern_cat_";
+    public static final String KEY_CUSTOM_CATEGORIES = "pref_custom_categories";
+    public static final String KEY_CUSTOM_LOCATIONS = "pref_custom_locations";
 
     public static final String DEFAULT_ADMIN_CODE = "ADM";
     public static final String DEFAULT_LOCATION = "Lager";
     public static final boolean DEFAULT_WIFI_ONLY = true;
     public static final String DEFAULT_INV_PATTERN_GLOBAL = "IT-***";
+    public static final List<String> DEFAULT_CATEGORIES = Arrays.asList(
+            "Switch", "Router", "Access Point", "Laptop", "Kabel/Zubehör", "Sonstiges"
+    );
+    public static final List<String> DEFAULT_LOCATIONS = Arrays.asList(
+            "Serverraum", "Lager", "Büro IT", "Schulungsraum", "Raum B102"
+    );
 
     private static final Pattern ASTERISK_BLOCK_PATTERN = Pattern.compile("\\*+");
 
@@ -62,6 +76,110 @@ public class PrefsManager {
                 .putString(KEY_DEFAULT_LOCATION, sanitizedLocation)
                 .putBoolean(KEY_WIFI_ONLY_LOOKUP, wifiOnlyLookup)
                 .apply();
+    }
+
+    public List<String> getCategories() {
+        return loadStringList(KEY_CUSTOM_CATEGORIES, DEFAULT_CATEGORIES);
+    }
+
+    public void saveCategories(List<String> categories) {
+        saveStringList(KEY_CUSTOM_CATEGORIES, categories, DEFAULT_CATEGORIES);
+    }
+
+    public List<String> getLocations() {
+        return loadStringList(KEY_CUSTOM_LOCATIONS, DEFAULT_LOCATIONS);
+    }
+
+    public void saveLocations(List<String> locations) {
+        saveStringList(KEY_CUSTOM_LOCATIONS, locations, DEFAULT_LOCATIONS);
+    }
+
+    public void renameCategory(String oldName, String newName) {
+        if (oldName == null || newName == null || newName.trim().isEmpty()) {
+            return;
+        }
+        String trimmedNew = newName.trim();
+        List<String> categories = getCategories();
+        for (int i = 0; i < categories.size(); i++) {
+            if (oldName.equals(categories.get(i))) {
+                categories.set(i, trimmedNew);
+                break;
+            }
+        }
+        saveCategories(categories);
+
+        String existingPattern = getCategoryInventoryPattern(oldName);
+        if (!existingPattern.isEmpty()) {
+            prefs.edit()
+                    .remove(KEY_INV_PATTERN_CATEGORY_PREFIX + oldName.trim())
+                    .putString(KEY_INV_PATTERN_CATEGORY_PREFIX + trimmedNew, existingPattern)
+                    .apply();
+        }
+    }
+
+    public void removeCategoryInventoryPattern(String category) {
+        if (category == null || category.trim().isEmpty()) {
+            return;
+        }
+        prefs.edit().remove(KEY_INV_PATTERN_CATEGORY_PREFIX + category.trim()).apply();
+    }
+
+    public void renameLocation(String oldName, String newName) {
+        if (oldName == null || newName == null || newName.trim().isEmpty()) {
+            return;
+        }
+        String trimmedNew = newName.trim();
+        List<String> locations = getLocations();
+        for (int i = 0; i < locations.size(); i++) {
+            if (oldName.equals(locations.get(i))) {
+                locations.set(i, trimmedNew);
+                break;
+            }
+        }
+        saveLocations(locations);
+
+        if (oldName.equals(getDefaultLocation())) {
+            prefs.edit().putString(KEY_DEFAULT_LOCATION, trimmedNew).apply();
+        }
+    }
+
+    private List<String> loadStringList(String key, List<String> defaults) {
+        String raw = prefs.getString(key, null);
+        if (raw == null || raw.trim().isEmpty()) {
+            return new ArrayList<>(defaults);
+        }
+        try {
+            JSONArray array = new JSONArray(raw);
+            List<String> items = new ArrayList<>(array.length());
+            for (int i = 0; i < array.length(); i++) {
+                String value = array.optString(i, "").trim();
+                if (!value.isEmpty() && !items.contains(value)) {
+                    items.add(value);
+                }
+            }
+            return items.isEmpty() ? new ArrayList<>(defaults) : items;
+        } catch (JSONException e) {
+            return new ArrayList<>(defaults);
+        }
+    }
+
+    private void saveStringList(String key, List<String> items, List<String> fallback) {
+        List<String> cleaned = new ArrayList<>();
+        if (items != null) {
+            for (String item : items) {
+                if (item != null && !item.trim().isEmpty() && !cleaned.contains(item.trim())) {
+                    cleaned.add(item.trim());
+                }
+            }
+        }
+        if (cleaned.isEmpty()) {
+            cleaned.addAll(fallback);
+        }
+        JSONArray array = new JSONArray();
+        for (String item : cleaned) {
+            array.put(item);
+        }
+        prefs.edit().putString(key, array.toString()).apply();
     }
 
     public String getGlobalInventoryPattern() {

@@ -279,6 +279,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.delete(TABLE_ASSETS, COL_ASSET_ID + " = ?", new String[]{String.valueOf(assetId)});
     }
 
+    public void renameCategoryInAssets(String oldCategory, String newCategory) {
+        renameColumnValueInAssets(COL_ASSET_CATEGORY, oldCategory, newCategory);
+    }
+
+    public void renameLocationInAssets(String oldLocation, String newLocation) {
+        renameColumnValueInAssets(COL_ASSET_LOCATION, oldLocation, newLocation);
+    }
+
+    private void renameColumnValueInAssets(String columnName, String oldValue, String newValue) {
+        if (oldValue == null || newValue == null || newValue.trim().isEmpty() || oldValue.equals(newValue.trim())) {
+            return;
+        }
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(columnName, newValue.trim());
+        db.update(TABLE_ASSETS, values, columnName + " = ?", new String[]{oldValue});
+    }
+
     public List<LoanLog> getLoanLogsForAsset(long assetId) {
         List<LoanLog> logs = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
