@@ -84,7 +84,32 @@ public class AssetModelAndValidationTest {
         }
         assertNotNull(ubiquiti);
         assertEquals("Ubiquiti Inc.", ubiquiti.getDefaultVendor());
-        assertEquals(5, ubiquiti.getChildren().size());
+        assertEquals(7, ubiquiti.getChildren().size());
+
+        List<String> expectedCategories = Arrays.asList(
+                "Cloud Gateways", "Switching", "WiFi", "Physical Security",
+                "Door Access", "Integrations", "Accessories"
+        );
+        for (int i = 0; i < expectedCategories.size(); i++) {
+            assertEquals(expectedCategories.get(i), ubiquiti.getChildren().get(i).getLabel());
+        }
+
+        // Switching -> Professional Max & XG muss exakt 13 Modelle inkl. Pro XG enthalten
+        ProductCatalog.CatalogNode switching = ubiquiti.getChildren().get(1);
+        ProductCatalog.CatalogNode proMaxXg = switching.getChildren().get(0);
+        assertEquals("Professional Max & XG", proMaxXg.getLabel());
+        assertEquals(13, proMaxXg.getChildren().size());
+        Set<String> proMaxXgLabels = new HashSet<>();
+        for (ProductCatalog.CatalogNode model : proMaxXg.getChildren()) {
+            proMaxXgLabels.add(model.getLabel());
+        }
+        assertTrue(proMaxXgLabels.contains("Pro Max 48 PoE (USW-Pro-Max-48-PoE)"));
+        assertTrue(proMaxXgLabels.contains("Pro XG 48 PoE (USW-Pro-XG-48-PoE)"));
+        assertTrue(proMaxXgLabels.contains("Pro XG 24 PoE (USW-Pro-XG-24-PoE)"));
+        assertTrue(proMaxXgLabels.contains("Pro XG 8 PoE (USW-Pro-XG-8-PoE)"));
+        assertTrue(proMaxXgLabels.contains("Pro XG 4 PoE (USW-Pro-XG-4-PoE)"));
+        assertTrue(proMaxXgLabels.contains("Pro XG 24 (USW-Pro-XG-24)"));
+        assertTrue(proMaxXgLabels.contains("Pro XG 16 (USW-Pro-XG-16)"));
 
         Set<String> validCategories = new HashSet<>(Arrays.asList(
                 "Switch", "Router", "Access Point", "Laptop", "Kabel/Zubehör", "Sonstiges"
