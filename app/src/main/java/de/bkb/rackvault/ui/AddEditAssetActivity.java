@@ -4,9 +4,11 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.appbar.MaterialToolbar;
@@ -22,6 +24,7 @@ import de.bkb.rackvault.R;
 import de.bkb.rackvault.data.DatabaseHelper;
 import de.bkb.rackvault.data.PrefsManager;
 import de.bkb.rackvault.model.Asset;
+import de.bkb.rackvault.network.MacVendorClient;
 
 /**
  * Formular-Activity zum Anlegen neuer sowie Bearbeiten vorhandener IT-Geräte.
@@ -41,6 +44,8 @@ public class AddEditAssetActivity extends AppCompatActivity {
     private TextInputEditText etVendor;
     private SwitchMaterial swDefect;
     private TextInputEditText etNotes;
+    private MaterialButton btnLookupVendor;
+    private ProgressBar pbMacLookup;
     private PrefsManager prefsManager;
     private DatabaseHelper dbHelper;
 
@@ -72,7 +77,8 @@ public class AddEditAssetActivity extends AppCompatActivity {
         swDefect = findViewById(R.id.swDefect);
         etNotes = findViewById(R.id.etNotes);
 
-        MaterialButton btnLookupVendor = findViewById(R.id.btnLookupVendor);
+        btnLookupVendor = findViewById(R.id.btnLookupVendor);
+        pbMacLookup = findViewById(R.id.pbMacLookup);
         MaterialButton btnSaveAsset = findViewById(R.id.btnSaveAsset);
 
         editingAssetId = getIntent().getLongExtra(EXTRA_ASSET_ID, -1L);
@@ -133,10 +139,36 @@ public class AddEditAssetActivity extends AppCompatActivity {
             return;
         }
         etMacAddress.setError(null);
-        String wifiInfo = prefsManager.isWifiOnlyLookup() ? " (nur WLAN aktiv)" : " (WLAN & Mobilfunk)";
-        Snackbar.make(rootAddEdit,
-                "MAC-Vendor-Lookup über api.macvendors.com wird in DS 7 angebunden" + wifiInfo + ".",
-                Snackbar.LENGTH_SHORT).show();
+
+        String normalizedMac = mac.toUpperCase(Locale.ROOT).replace('-', ':');
+        etMacAddress.setText(normalizedMac);
+
+        pbMacLookup.setVisibility(View.VISIBLE);
+        btnLookupVendor.setEnabled(false);
+
+        MacVendorClient.lookupVendor(this, normalizedMac, prefsManager.isWifiOnlyLookup(),
+                new MacVendorClient.Callback() {
+                    @Override
+                    public void onSuccess(@NonNull String vendor) {
+                        if (isFinishing() || isDestroyed()) {
+                            return;
+                        }
+                        pbMacLookup.setVisibility(View.GONE);
+                        btnLookupVendor.setEnabled(true);
+                        etVendor.setText(vendor);
+                        Snackbar.make(rootAddEdit, "Hersteller erkannt: " + vendor, Snackbar.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(@NonNull String errorMessage) {
+                        if (isFinishing() || isDestroyed()) {
+                            return;
+                        }
+                        pbMacLookup.setVisibility(View.GONE);
+                        btnLookupVendor.setEnabled(true);
+                        Snackbar.make(rootAddEdit, errorMessage, Snackbar.LENGTH_LONG).show();
+                    }
+                });
     }
 
     private void saveForm() {
