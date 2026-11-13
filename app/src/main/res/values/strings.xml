@@ -8,6 +8,7 @@
     <string name="title_edit_asset">Gerät bearbeiten</string>
     <string name="title_asset_detail">Gerätedetails</string>
     <string name="title_settings">Einstellungen &amp; Export</string>
+    <string name="title_inv_pattern_settings">Inventarnummer-Formatierung</string>
 
     <!-- Status-Bezeichnungen -->
     <string name="status_available">Verfügbar</string>
@@ -79,6 +80,8 @@
     <string name="hint_inv_pattern_laptop">Laptop (optional, z. B. IT-***-NB)</string>
     <string name="hint_inv_pattern_cable">Kabel/Zubehör (optional, z. B. IT-***-ZUB)</string>
     <string name="hint_inv_pattern_other">Sonstiges (optional, z. B. IT-***-DIV)</string>
+    <string name="btn_open_inv_pattern_submenu">Inventarnummer-Formatierung anpassen</string>
+    <string name="btn_save_inv_patterns">Formatierung speichern</string>
     <string name="btn_save_settings">Einstellungen speichern</string>
     <string name="section_export_title">Inventur-Export (CSV)</string>
     <string name="export_description">Exportiert das gesamte Inventar als UTF-8-CSV-Datei in den Gerätespeicher (Downloads) inkl. Option zum direkten Teilen.</string>

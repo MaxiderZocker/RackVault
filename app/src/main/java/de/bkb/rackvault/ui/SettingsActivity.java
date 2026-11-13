@@ -1,10 +1,12 @@
 package de.bkb.rackvault.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -15,9 +17,6 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import de.bkb.rackvault.R;
 import de.bkb.rackvault.data.CsvExporter;
@@ -33,8 +32,7 @@ public class SettingsActivity extends AppCompatActivity {
     private TextInputEditText etAdminCode;
     private Spinner spDefaultLocation;
     private SwitchMaterial swWifiOnlyLookup;
-    private TextInputEditText etInvPatternGlobal;
-    private final Map<String, TextInputEditText> categoryPatternFields = new LinkedHashMap<>();
+    private TextView tvInvPatternSummary;
     private PrefsManager prefsManager;
     private DatabaseHelper dbHelper;
 
@@ -57,36 +55,49 @@ public class SettingsActivity extends AppCompatActivity {
         etAdminCode = findViewById(R.id.etAdminCode);
         spDefaultLocation = findViewById(R.id.spDefaultLocation);
         swWifiOnlyLookup = findViewById(R.id.swWifiOnlyLookup);
-        etInvPatternGlobal = findViewById(R.id.etInvPatternGlobal);
-        categoryPatternFields.put("Switch", findViewById(R.id.etInvPatternSwitch));
-        categoryPatternFields.put("Router", findViewById(R.id.etInvPatternRouter));
-        categoryPatternFields.put("Access Point", findViewById(R.id.etInvPatternAp));
-        categoryPatternFields.put("Laptop", findViewById(R.id.etInvPatternLaptop));
-        categoryPatternFields.put("Kabel/Zubehör", findViewById(R.id.etInvPatternCable));
-        categoryPatternFields.put("Sonstiges", findViewById(R.id.etInvPatternOther));
+        tvInvPatternSummary = findViewById(R.id.tvInvPatternSummary);
 
         MaterialButton btnSaveSettings = findViewById(R.id.btnSaveSettings);
+        MaterialButton btnOpenInvPatternSubmenu = findViewById(R.id.btnOpenInvPatternSubmenu);
         MaterialButton btnExportCsv = findViewById(R.id.btnExportCsv);
         MaterialButton btnLoadDemoData = findViewById(R.id.btnLoadDemoData);
         MaterialButton btnResetDatabase = findViewById(R.id.btnResetDatabase);
 
         loadCurrentSettings();
+        updateInvPatternSummary();
 
         btnSaveSettings.setOnClickListener(v -> saveSettings());
+        btnOpenInvPatternSubmenu.setOnClickListener(v ->
+                startActivity(new Intent(this, InventoryPatternActivity.class)));
         btnExportCsv.setOnClickListener(v ->
                 CsvExporter.exportAndShowSnackbar(this, rootSettings, dbHelper.getAllAssets()));
         btnLoadDemoData.setOnClickListener(v -> confirmLoadDemoData());
         btnResetDatabase.setOnClickListener(v -> confirmResetDatabase());
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateInvPatternSummary();
+    }
+
     private void loadCurrentSettings() {
         etAdminCode.setText(prefsManager.getAdminCode());
         swWifiOnlyLookup.setChecked(prefsManager.isWifiOnlyLookup());
         selectLocationSpinner(prefsManager.getDefaultLocation());
-        etInvPatternGlobal.setText(prefsManager.getGlobalInventoryPattern());
-        for (Map.Entry<String, TextInputEditText> entry : categoryPatternFields.entrySet()) {
-            entry.getValue().setText(prefsManager.getCategoryInventoryPattern(entry.getKey()));
+    }
+
+    private void updateInvPatternSummary() {
+        String[] categories = getResources().getStringArray(R.array.categories_array);
+        int customCount = 0;
+        for (String category : categories) {
+            if (prefsManager.hasCategoryInventoryPattern(category)) {
+                customCount++;
+            }
         }
+        String summary = "Globales Format: " + prefsManager.getGlobalInventoryPattern()
+                + " · Eigene Kategorie-Formate: " + customCount + "/" + categories.length;
+        tvInvPatternSummary.setText(summary);
     }
 
     @SuppressWarnings("unchecked")
@@ -113,34 +124,12 @@ public class SettingsActivity extends AppCompatActivity {
         }
         etAdminCode.setError(null);
 
-        String globalPattern = getTrimmedText(etInvPatternGlobal);
-        if (!PrefsManager.isValidInventoryPattern(globalPattern)) {
-            etInvPatternGlobal.setError("Mindestens ein * als Zähler erforderlich (z. B. IT-***)");
-            etInvPatternGlobal.requestFocus();
-            return;
-        }
-        etInvPatternGlobal.setError(null);
-
-        Map<String, String> categoryPatterns = new LinkedHashMap<>();
-        for (Map.Entry<String, TextInputEditText> entry : categoryPatternFields.entrySet()) {
-            TextInputEditText field = entry.getValue();
-            String value = getTrimmedText(field);
-            if (!TextUtils.isEmpty(value) && !PrefsManager.isValidInventoryPattern(value)) {
-                field.setError("Muster muss mindestens ein * enthalten (z. B. IT-***-SWT)");
-                field.requestFocus();
-                return;
-            }
-            field.setError(null);
-            categoryPatterns.put(entry.getKey(), value);
-        }
-
         String defaultLocation = spDefaultLocation.getSelectedItem() != null
                 ? spDefaultLocation.getSelectedItem().toString()
                 : PrefsManager.DEFAULT_LOCATION;
         boolean wifiOnly = swWifiOnlyLookup.isChecked();
 
         prefsManager.saveSettings(adminCode, defaultLocation, wifiOnly);
-        prefsManager.saveInventoryPatterns(globalPattern, categoryPatterns);
         Toast.makeText(this, "Einstellungen dauerhaft gespeichert", Toast.LENGTH_SHORT).show();
     }
 

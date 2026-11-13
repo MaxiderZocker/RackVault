@@ -36,6 +36,11 @@
             android:exported="false"
             android:parentActivityName=".ui.MainActivity" />
 
+        <activity
+            android:name=".ui.InventoryPatternActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.SettingsActivity" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
