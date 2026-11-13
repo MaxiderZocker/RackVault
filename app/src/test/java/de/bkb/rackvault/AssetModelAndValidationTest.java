@@ -94,22 +94,59 @@ public class AssetModelAndValidationTest {
             assertEquals(expectedCategories.get(i), ubiquiti.getChildren().get(i).getLabel());
         }
 
-        // Switching -> Professional Max & XG muss exakt 13 Modelle inkl. Pro XG enthalten
+        // Switching -> alle 7 Serien inkl. Modellanzahl prüfen
         ProductCatalog.CatalogNode switching = ubiquiti.getChildren().get(1);
-        ProductCatalog.CatalogNode proMaxXg = switching.getChildren().get(0);
+        assertEquals(7, switching.getChildren().size());
+
+        ProductCatalog.CatalogNode enterprise = switching.getChildren().get(0);
+        assertEquals("Enterprise", enterprise.getLabel());
+        assertEquals(10, enterprise.getChildren().size());
+        Set<String> enterpriseLabels = collectLabels(enterprise);
+        assertTrue(enterpriseLabels.contains("Enterprise Campus 24S PoE (ECS-24S-PoE (1050W))"));
+        assertTrue(enterpriseLabels.contains("Enterprise Campus 48S PoE (ECS-48S-PoE (2150W))"));
+        assertTrue(enterpriseLabels.contains("Enterprise Audio/Video XG 24 PoE (EAV-XG-24-PoE (2150W))"));
+        assertTrue(enterpriseLabels.contains("Enterprise Audio/Video Fiber (EAV-Fiber)"));
+        assertTrue(enterpriseLabels.contains("Enterprise Campus Aggregation (ECS-Aggregation)"));
+        assertTrue(enterpriseLabels.contains("Enterprise Campus Switch Core (ECS-Core)"));
+
+        ProductCatalog.CatalogNode proMaxXg = switching.getChildren().get(1);
         assertEquals("Professional Max & XG", proMaxXg.getLabel());
         assertEquals(13, proMaxXg.getChildren().size());
-        Set<String> proMaxXgLabels = new HashSet<>();
-        for (ProductCatalog.CatalogNode model : proMaxXg.getChildren()) {
-            proMaxXgLabels.add(model.getLabel());
-        }
-        assertTrue(proMaxXgLabels.contains("Pro Max 48 PoE (USW-Pro-Max-48-PoE)"));
-        assertTrue(proMaxXgLabels.contains("Pro XG 48 PoE (USW-Pro-XG-48-PoE)"));
-        assertTrue(proMaxXgLabels.contains("Pro XG 24 PoE (USW-Pro-XG-24-PoE)"));
-        assertTrue(proMaxXgLabels.contains("Pro XG 8 PoE (USW-Pro-XG-8-PoE)"));
-        assertTrue(proMaxXgLabels.contains("Pro XG 4 PoE (USW-Pro-XG-4-PoE)"));
-        assertTrue(proMaxXgLabels.contains("Pro XG 24 (USW-Pro-XG-24)"));
-        assertTrue(proMaxXgLabels.contains("Pro XG 16 (USW-Pro-XG-16)"));
+        Set<String> proMaxXgLabels = collectLabels(proMaxXg);
+        assertTrue(proMaxXgLabels.contains("Pro Max 48 PoE (USW-Pro-Max-48-PoE (720W))"));
+        assertTrue(proMaxXgLabels.contains("Pro XG 48 PoE (USW-Pro-XG-48-PoE (1080W))"));
+        assertTrue(proMaxXgLabels.contains("Pro HD 24 PoE (USW-Pro-HD-24-PoE (600W))"));
+        assertTrue(proMaxXgLabels.contains("Pro XG 48 (USW-Pro-XG-48)"));
+        assertTrue(proMaxXgLabels.contains("Pro XG 10 PoE (USW-Pro-XG-10-PoE (400W))"));
+        assertTrue(proMaxXgLabels.contains("Pro HD 24 (USW-Pro-HD-24)"));
+
+        ProductCatalog.CatalogNode professional = switching.getChildren().get(2);
+        assertEquals("Professional", professional.getLabel());
+        assertEquals(3, professional.getChildren().size());
+
+        ProductCatalog.CatalogNode standard = switching.getChildren().get(3);
+        assertEquals("Standard", standard.getLabel());
+        assertEquals(5, standard.getChildren().size());
+
+        ProductCatalog.CatalogNode utility = switching.getChildren().get(4);
+        assertEquals("Utility", utility.getLabel());
+        assertEquals(20, utility.getChildren().size());
+
+        ProductCatalog.CatalogNode aggregation = switching.getChildren().get(5);
+        assertEquals("Aggregation", aggregation.getLabel());
+        assertEquals(4, aggregation.getChildren().size());
+        Set<String> aggregationLabels = collectLabels(aggregation);
+        assertTrue(aggregationLabels.contains("Enterprise Campus Aggregation (ECS-Aggregation)"));
+        assertTrue(aggregationLabels.contains("Pro XG Aggregation (USW-Pro-XG-Aggregation)"));
+        assertTrue(aggregationLabels.contains("Aggregation (USW-Aggregation)"));
+        assertTrue(aggregationLabels.contains("Hi-Capacity Aggregation (USW-Pro-Aggregation)"));
+
+        ProductCatalog.CatalogNode wan = switching.getChildren().get(6);
+        assertEquals("WAN", wan.getLabel());
+        assertEquals(2, wan.getChildren().size());
+        Set<String> wanLabels = collectLabels(wan);
+        assertTrue(wanLabels.contains("WAN Switch (USW-WAN)"));
+        assertTrue(wanLabels.contains("WAN Switch RJ45 (USW-WAN-RJ45)"));
 
         Set<String> validCategories = new HashSet<>(Arrays.asList(
                 "Switch", "Router", "Access Point", "Laptop", "Kabel/Zubehör", "Sonstiges"
@@ -129,5 +166,13 @@ public class AssetModelAndValidationTest {
                 }
             }
         }
+    }
+
+    private Set<String> collectLabels(ProductCatalog.CatalogNode parent) {
+        Set<String> labels = new HashSet<>();
+        for (ProductCatalog.CatalogNode child : parent.getChildren()) {
+            labels.add(child.getLabel());
+        }
+        return labels;
     }
 }
