@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">RackVault</string>
+
+    <!-- Screen-Titel -->
+    <string name="title_main">RackVault Inventar</string>
+    <string name="title_add_asset">Gerät anlegen</string>
+    <string name="title_edit_asset">Gerät bearbeiten</string>
+    <string name="title_asset_detail">Gerätedetails</string>
+    <string name="title_settings">Einstellungen &amp; Export</string>
+
+    <!-- Status-Bezeichnungen -->
+    <string name="status_available">Verfügbar</string>
+    <string name="status_borrowed">Ausgeliehen</string>
+    <string name="status_defect">Defekt</string>
+
+    <!-- Platzhalter für DS 1 -->
+    <string name="placeholder_main">Inventar-Übersicht (Grundgerüst DS 1)</string>
+    <string name="placeholder_add_edit">Geräteformular (Grundgerüst DS 1)</string>
+    <string name="placeholder_detail">Detailansicht &amp; Verlauf (Grundgerüst DS 1)</string>
+    <string name="placeholder_settings">Einstellungen &amp; CSV-Export (Grundgerüst DS 1)</string>
+
+    <!-- Auswahllisten (Spinner) -->
+    <string-array name="categories_array">
+        <item>Switch</item>
+        <item>Router</item>
+        <item>Access Point</item>
+        <item>Laptop</item>
+        <item>Kabel/Zubehör</item>
+        <item>Sonstiges</item>
+    </string-array>
+
+    <string-array name="locations_array">
+        <item>Serverraum</item>
+        <item>Lager</item>
+        <item>Büro IT</item>
+        <item>Schulungsraum</item>
+        <item>Raum B102</item>
+    </string-array>
+
+    <string-array name="filter_locations_array">
+        <item>Alle</item>
+        <item>Serverraum</item>
+        <item>Lager</item>
+        <item>Büro IT</item>
+        <item>Schulungsraum</item>
+        <item>Raum B102</item>
+    </string-array>
+
+    <string-array name="filter_status_array">
+        <item>Alle</item>
+        <item>Verfügbar</item>
+        <item>Ausgeliehen</item>
+        <item>Defekt</item>
+    </string-array>
+</resources>

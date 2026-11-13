@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primär- & Sekundärfarben (Tech-Blau & Schiefergrau) -->
+    <color name="primary_blue">#1E3A8A</color>
+    <color name="primary_blue_light">#2563EB</color>
+    <color name="primary_blue_dark">#172554</color>
+    <color name="secondary_slate">#334155</color>
+    <color name="secondary_slate_light">#64748B</color>
+
+    <!-- Oberflächenfarben (Light Mode Defaults) -->
+    <color name="surface_background">#F8FAFC</color>
+    <color name="surface_card">#FFFFFF</color>
+    <color name="surface_border">#CBD5E1</color>
+    <color name="text_primary">#0F172A</color>
+    <color name="text_secondary">#475569</color>
+    <color name="on_primary">#FFFFFF</color>
+
+    <!-- Dark Mode Oberflächenfarben -->
+    <color name="surface_background_dark">#0F172A</color>
+    <color name="surface_card_dark">#1E293B</color>
+    <color name="surface_border_dark">#334155</color>
+    <color name="text_primary_dark">#F8FAFC</color>
+    <color name="text_secondary_dark">#94A3B8</color>
+    <color name="primary_blue_night">#3B82F6</color>
+
+    <!-- Semantische Status-Badges -->
+    <color name="status_available_bg">#DCFCE7</color>
+    <color name="status_available_text">#16A34A</color>
+    <color name="status_borrowed_bg">#FFEDD5</color>
+    <color name="status_borrowed_text">#EA580C</color>
+    <color name="status_defect_bg">#FEE2E2</color>
+    <color name="status_defect_text">#DC2626</color>
+</resources>
