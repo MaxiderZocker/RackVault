@@ -1,7 +1,9 @@
 package de.bkb.rackvault.ui;
 
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
@@ -97,8 +99,57 @@ public class AddEditAssetActivity extends AppCompatActivity {
             selectSpinnerValue(spLocation, prefsManager.getDefaultLocation());
         }
 
+        setupMacAddressFormatter();
         btnLookupVendor.setOnClickListener(v -> handleMacLookupClick());
         btnSaveAsset.setOnClickListener(v -> saveForm());
+    }
+
+    /**
+     * Formatiert die MAC-Adresse während der Eingabe automatisch mit Doppelpunkten
+     * (z. B. A -> A2 -> A2:3) und entfernt überflüssige Doppelpunkte beim Löschen automatisch mit.
+     */
+    private void setupMacAddressFormatter() {
+        etMacAddress.addTextChangedListener(new TextWatcher() {
+            private boolean isFormatting = false;
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (isFormatting) {
+                    return;
+                }
+                isFormatting = true;
+
+                String current = s.toString();
+                String rawHex = current.replaceAll("[^0-9A-Fa-f]", "").toUpperCase(Locale.ROOT);
+                if (rawHex.length() > 12) {
+                    rawHex = rawHex.substring(0, 12);
+                }
+
+                StringBuilder formatted = new StringBuilder();
+                for (int i = 0; i < rawHex.length(); i++) {
+                    if (i > 0 && i % 2 == 0) {
+                        formatted.append(':');
+                    }
+                    formatted.append(rawHex.charAt(i));
+                }
+
+                String formattedStr = formatted.toString();
+                if (!current.equals(formattedStr)) {
+                    s.replace(0, s.length(), formattedStr);
+                    etMacAddress.setSelection(Math.min(formattedStr.length(), s.length()));
+                }
+
+                isFormatting = false;
+            }
+        });
     }
 
     private void populateForm(Asset asset) {
