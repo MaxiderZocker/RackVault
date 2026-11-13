@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.bkb.rackvault.R;
+import de.bkb.rackvault.data.CsvExporter;
 import de.bkb.rackvault.data.DatabaseHelper;
 import de.bkb.rackvault.model.Asset;
 
@@ -142,10 +143,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_export_csv) {
-            int totalAssets = dbHelper.getAllAssets().size();
-            Snackbar.make(rootMain,
-                    "CSV-Export wird in DS 6 vollständig angebunden (Aktuell: " + totalAssets + " Geräte in SQLite).",
-                    Snackbar.LENGTH_LONG).show();
+            CsvExporter.exportAndShowSnackbar(this, rootMain, dbHelper.getAllAssets());
             return true;
         }
         if (id == R.id.action_settings) {

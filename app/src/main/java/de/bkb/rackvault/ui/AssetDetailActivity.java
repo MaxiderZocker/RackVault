@@ -130,8 +130,7 @@ public class AssetDetailActivity extends AppCompatActivity {
         tvDetailNotes.setText(String.format("%s %s",
                 getString(R.string.label_notes_short), valueOrDash(currentAsset.getNotes())));
 
-        if (Asset.STATUS_AUSGELIEHEN.equals(currentAsset.getStatus())
-                && !TextUtils.isEmpty(currentAsset.getBorrowedBy())) {
+        if (isCurrentlyBorrowed()) {
             tvDetailBorrowedInfo.setVisibility(View.VISIBLE);
             String since = !TextUtils.isEmpty(currentAsset.getBorrowedSince())
                     ? " (seit " + currentAsset.getBorrowedSince() + ")"
@@ -151,8 +150,13 @@ public class AssetDetailActivity extends AppCompatActivity {
         loanLogAdapter.notifyDataSetChanged();
     }
 
+    private boolean isCurrentlyBorrowed() {
+        return currentAsset != null && (Asset.STATUS_AUSGELIEHEN.equals(currentAsset.getStatus())
+                || !TextUtils.isEmpty(currentAsset.getBorrowedBy()));
+    }
+
     private void updateActionButton() {
-        if (Asset.STATUS_AUSGELIEHEN.equals(currentAsset.getStatus())) {
+        if (isCurrentlyBorrowed()) {
             btnBorrowOrReturn.setEnabled(true);
             btnBorrowOrReturn.setText(R.string.btn_return_asset);
         } else if (Asset.STATUS_DEFEKT.equals(currentAsset.getStatus())) {
@@ -168,7 +172,7 @@ public class AssetDetailActivity extends AppCompatActivity {
         if (currentAsset == null) {
             return;
         }
-        if (Asset.STATUS_AUSGELIEHEN.equals(currentAsset.getStatus())) {
+        if (isCurrentlyBorrowed()) {
             dbHelper.returnAsset(currentAsset.getId(), prefsManager.getAdminCode());
             loadAssetDetails();
             Snackbar.make(rootDetail, "Rückgabe verbucht.", Snackbar.LENGTH_SHORT).show();

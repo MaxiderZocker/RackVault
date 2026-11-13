@@ -15,6 +15,9 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.util.Locale;
+import java.util.regex.Pattern;
+
 import de.bkb.rackvault.R;
 import de.bkb.rackvault.data.DatabaseHelper;
 import de.bkb.rackvault.data.PrefsManager;
@@ -26,6 +29,8 @@ import de.bkb.rackvault.model.Asset;
 public class AddEditAssetActivity extends AppCompatActivity {
 
     public static final String EXTRA_ASSET_ID = "extra_asset_id";
+    private static final Pattern MAC_PATTERN =
+            Pattern.compile("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$");
 
     private View rootAddEdit;
     private TextInputEditText etAssetName;
@@ -122,6 +127,11 @@ public class AddEditAssetActivity extends AppCompatActivity {
             etMacAddress.requestFocus();
             return;
         }
+        if (!isValidMacAddress(mac)) {
+            etMacAddress.setError("Ungültiges MAC-Format (z. B. 00:1A:2B:3C:4D:5E)");
+            etMacAddress.requestFocus();
+            return;
+        }
         etMacAddress.setError(null);
         String wifiInfo = prefsManager.isWifiOnlyLookup() ? " (nur WLAN aktiv)" : " (WLAN & Mobilfunk)";
         Snackbar.make(rootAddEdit,
@@ -161,16 +171,30 @@ public class AddEditAssetActivity extends AppCompatActivity {
             etInventoryNumber.setError(null);
         }
 
+        if (!TextUtils.isEmpty(macAddress) && !isValidMacAddress(macAddress)) {
+            etMacAddress.setError("Ungültiges MAC-Format (z. B. 00:1A:2B:3C:4D:5E)");
+            if (!hasError) {
+                etMacAddress.requestFocus();
+            }
+            hasError = true;
+        } else {
+            etMacAddress.setError(null);
+        }
+
         if (hasError) {
             return;
         }
+
+        String normalizedMac = !TextUtils.isEmpty(macAddress)
+                ? macAddress.toUpperCase(Locale.ROOT).replace('-', ':')
+                : "";
 
         Asset asset = existingAsset != null ? existingAsset : new Asset();
         asset.setName(name);
         asset.setInventoryNumber(inventoryNumber);
         asset.setCategory(spCategory.getSelectedItem() != null ? spCategory.getSelectedItem().toString() : "Sonstiges");
         asset.setLocation(spLocation.getSelectedItem() != null ? spLocation.getSelectedItem().toString() : "Lager");
-        asset.setMacAddress(macAddress);
+        asset.setMacAddress(normalizedMac);
         asset.setVendor(vendor);
         asset.setNotes(notes);
 
@@ -187,6 +211,10 @@ public class AddEditAssetActivity extends AppCompatActivity {
                 existingAsset != null ? "Gerät aktualisiert" : "Gerät gespeichert",
                 Toast.LENGTH_SHORT).show();
         finish();
+    }
+
+    private boolean isValidMacAddress(String mac) {
+        return MAC_PATTERN.matcher(mac).matches();
     }
 
     private String getTrimmedText(TextInputEditText editText) {

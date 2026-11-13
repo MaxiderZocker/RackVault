@@ -17,6 +17,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 
 import de.bkb.rackvault.R;
+import de.bkb.rackvault.data.CsvExporter;
 import de.bkb.rackvault.data.DatabaseHelper;
 import de.bkb.rackvault.data.PrefsManager;
 
@@ -60,9 +61,8 @@ public class SettingsActivity extends AppCompatActivity {
         loadCurrentSettings();
 
         btnSaveSettings.setOnClickListener(v -> saveSettings());
-        btnExportCsv.setOnClickListener(v -> Snackbar.make(rootSettings,
-                "CSV-Export inkl. Teilen-Option wird in DS 6 implementiert.",
-                Snackbar.LENGTH_SHORT).show());
+        btnExportCsv.setOnClickListener(v ->
+                CsvExporter.exportAndShowSnackbar(this, rootSettings, dbHelper.getAllAssets()));
         btnLoadDemoData.setOnClickListener(v -> confirmLoadDemoData());
         btnResetDatabase.setOnClickListener(v -> confirmResetDatabase());
     }
