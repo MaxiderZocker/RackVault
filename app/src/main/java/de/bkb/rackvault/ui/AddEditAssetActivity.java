@@ -128,20 +128,7 @@ public class AddEditAssetActivity extends AppCompatActivity {
                 isFormatting = true;
 
                 String current = s.toString();
-                String rawHex = current.replaceAll("[^0-9A-Fa-f]", "").toUpperCase(Locale.ROOT);
-                if (rawHex.length() > 12) {
-                    rawHex = rawHex.substring(0, 12);
-                }
-
-                StringBuilder formatted = new StringBuilder();
-                for (int i = 0; i < rawHex.length(); i++) {
-                    if (i > 0 && i % 2 == 0) {
-                        formatted.append(':');
-                    }
-                    formatted.append(rawHex.charAt(i));
-                }
-
-                String formattedStr = formatted.toString();
+                String formattedStr = formatMacInput(current);
                 if (!current.equals(formattedStr)) {
                     s.replace(0, s.length(), formattedStr);
                     etMacAddress.setSelection(Math.min(formattedStr.length(), s.length()));
@@ -150,6 +137,29 @@ public class AddEditAssetActivity extends AppCompatActivity {
                 isFormatting = false;
             }
         });
+    }
+
+    /**
+     * Bereinigt eine beliebige MAC-Eingabe auf bis zu 12 Großbuchstaben-Hex-Zeichen
+     * und fügt nach jedem zweiten Zeichen automatisch einen Doppelpunkt ein.
+     */
+    public static String formatMacInput(String current) {
+        if (current == null || current.isEmpty()) {
+            return "";
+        }
+        String rawHex = current.replaceAll("[^0-9A-Fa-f]", "").toUpperCase(Locale.ROOT);
+        if (rawHex.length() > 12) {
+            rawHex = rawHex.substring(0, 12);
+        }
+
+        StringBuilder formatted = new StringBuilder();
+        for (int i = 0; i < rawHex.length(); i++) {
+            if (i > 0 && i % 2 == 0) {
+                formatted.append(':');
+            }
+            formatted.append(rawHex.charAt(i));
+        }
+        return formatted.toString();
     }
 
     private void populateForm(Asset asset) {
@@ -296,8 +306,8 @@ public class AddEditAssetActivity extends AppCompatActivity {
         finish();
     }
 
-    private boolean isValidMacAddress(String mac) {
-        return MAC_PATTERN.matcher(mac).matches();
+    public static boolean isValidMacAddress(String mac) {
+        return mac != null && MAC_PATTERN.matcher(mac).matches();
     }
 
     private String getTrimmedText(TextInputEditText editText) {
