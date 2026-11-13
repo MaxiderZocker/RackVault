@@ -14,11 +14,60 @@
     <string name="status_borrowed">Ausgeliehen</string>
     <string name="status_defect">Defekt</string>
 
-    <!-- Platzhalter für DS 1 -->
-    <string name="placeholder_main">Inventar-Übersicht (Grundgerüst DS 1)</string>
-    <string name="placeholder_add_edit">Geräteformular (Grundgerüst DS 1)</string>
-    <string name="placeholder_detail">Detailansicht &amp; Verlauf (Grundgerüst DS 1)</string>
-    <string name="placeholder_settings">Einstellungen &amp; CSV-Export (Grundgerüst DS 1)</string>
+    <!-- Menüs -->
+    <string name="menu_export_csv">CSV-Export</string>
+    <string name="menu_settings">Einstellungen</string>
+    <string name="menu_info">App-Info</string>
+    <string name="menu_edit">Bearbeiten</string>
+    <string name="menu_delete">Löschen</string>
+
+    <!-- MainActivity -->
+    <string name="label_filter_location">Standort</string>
+    <string name="label_filter_status">Status</string>
+    <string name="empty_assets_hint">Keine Geräte gefunden.\nTippe auf +, um ein neues IT-Gerät anzulegen.</string>
+    <string name="cd_add_asset">Neues Gerät anlegen</string>
+
+    <!-- AddEditAssetActivity -->
+    <string name="hint_asset_name">Gerätename * (z. B. HP ProCurve 2530-24G)</string>
+    <string name="hint_inventory_number">Inventarnummer * (z. B. IT-SW-014)</string>
+    <string name="label_category">Kategorie</string>
+    <string name="label_location">Standort</string>
+    <string name="hint_mac_address">MAC-Adresse (optional, z. B. 00:1A:2B:3C:4D:5E)</string>
+    <string name="btn_lookup_vendor">Hersteller?</string>
+    <string name="hint_vendor">Hersteller (automatisch oder manuell)</string>
+    <string name="switch_defect_label">Gerät ist als defekt markiert</string>
+    <string name="hint_notes">Notizen (z. B. Rack, Höheneinheit, Zubehör)</string>
+    <string name="btn_save_asset">Gerät speichern</string>
+
+    <!-- AssetDetailActivity & Ausleih-Dialog -->
+    <string name="label_inv_number_short">Inv.-Nr.:</string>
+    <string name="label_category_short">Kategorie:</string>
+    <string name="label_location_short">Standort:</string>
+    <string name="label_mac_short">MAC:</string>
+    <string name="label_vendor_short">Hersteller:</string>
+    <string name="label_borrowed_short">Ausgeliehen an:</string>
+    <string name="label_notes_short">Notizen:</string>
+    <string name="btn_borrow_asset">Gerät ausleihen</string>
+    <string name="btn_return_asset">Rückgabe verbuchen</string>
+    <string name="label_loan_history">Ausleih- &amp; Statusverlauf</string>
+    <string name="empty_loan_log">Noch keine Ausleih- oder Status-Einträge vorhanden.</string>
+    <string name="dialog_borrow_title">Gerät ausleihen</string>
+    <string name="hint_borrower_name">Ausleiher * (Name oder Kürzel)</string>
+    <string name="hint_borrow_comment">Bemerkung (optional, z. B. Raum / Projekt)</string>
+    <string name="not_specified">—</string>
+
+    <!-- SettingsActivity -->
+    <string name="section_defaults_title">Standardwerte (SharedPreferences)</string>
+    <string name="hint_admin_code">Admin-Kürzel (z. B. ADM)</string>
+    <string name="label_default_location">Standard-Standort bei Neuanlage</string>
+    <string name="switch_wifi_only_label">MAC-Lookup nur bei aktiver WLAN-Verbindung</string>
+    <string name="btn_save_settings">Einstellungen speichern</string>
+    <string name="section_export_title">Inventur-Export (CSV)</string>
+    <string name="export_description">Exportiert das gesamte Inventar als UTF-8-CSV-Datei in den Gerätespeicher (Downloads) inkl. Option zum direkten Teilen.</string>
+    <string name="btn_export_csv">Inventar als CSV exportieren</string>
+    <string name="section_maintenance_title">Datenbank &amp; Demo-Daten</string>
+    <string name="btn_load_demo_data">Demo-Daten laden</string>
+    <string name="btn_reset_database">Datenbank zurücksetzen</string>
 
     <!-- Auswahllisten (Spinner) -->
     <string-array name="categories_array">
