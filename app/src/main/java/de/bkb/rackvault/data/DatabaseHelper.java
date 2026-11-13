@@ -186,6 +186,58 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     * Erzeugt die nächste eindeutige, fortlaufende Inventarnummer anhand des effektiven
+     * Kategorie- oder Global-Formats aus {@link PrefsManager}.
+     */
+    public String generateNextInventoryNumber(PrefsManager prefsManager, String category, long excludeAssetId) {
+        String pattern = prefsManager.getEffectiveInventoryPattern(category);
+        boolean categorySpecific = prefsManager.hasCategoryInventoryPattern(category);
+
+        int countInScope = 0;
+        int maxMatchingNumber = 0;
+
+        SQLiteDatabase db = getReadableDatabase();
+        try (Cursor cursor = db.query(
+                TABLE_ASSETS,
+                new String[]{COL_ASSET_ID, COL_ASSET_CATEGORY, COL_ASSET_INVENTORY_NUMBER},
+                null,
+                null,
+                null,
+                null,
+                null)) {
+            int idIdx = cursor.getColumnIndexOrThrow(COL_ASSET_ID);
+            int catIdx = cursor.getColumnIndexOrThrow(COL_ASSET_CATEGORY);
+            int invIdx = cursor.getColumnIndexOrThrow(COL_ASSET_INVENTORY_NUMBER);
+
+            while (cursor.moveToNext()) {
+                long rowId = cursor.getLong(idIdx);
+                if (excludeAssetId > 0 && rowId == excludeAssetId) {
+                    continue;
+                }
+                String rowCategory = cursor.getString(catIdx);
+                String rowInv = cursor.getString(invIdx);
+
+                if (!categorySpecific || (category != null && category.equals(rowCategory))) {
+                    countInScope++;
+                }
+
+                int extracted = PrefsManager.extractSequenceNumber(pattern, rowInv);
+                if (extracted > maxMatchingNumber) {
+                    maxMatchingNumber = extracted;
+                }
+            }
+        }
+
+        int nextNumber = Math.max(countInScope + 1, maxMatchingNumber + 1);
+        String candidate = PrefsManager.formatInventoryNumber(pattern, nextNumber);
+        while (isInventoryNumberTaken(candidate, excludeAssetId)) {
+            nextNumber++;
+            candidate = PrefsManager.formatInventoryNumber(pattern, nextNumber);
+        }
+        return candidate;
+    }
+
     public long saveAsset(Asset asset, String adminCode) {
         SQLiteDatabase db = getWritableDatabase();
         long savedId = asset.getId();

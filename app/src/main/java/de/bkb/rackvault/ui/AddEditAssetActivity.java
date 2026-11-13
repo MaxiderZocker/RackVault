@@ -395,6 +395,9 @@ public class AddEditAssetActivity extends AppCompatActivity {
 
     private void saveForm() {
         String name = getTrimmedText(etAssetName);
+        String selectedCategory = spCategory.getSelectedItem() != null
+                ? spCategory.getSelectedItem().toString()
+                : "Sonstiges";
         String inventoryNumber = getTrimmedText(etInventoryNumber);
         String macAddress = getTrimmedText(etMacAddress);
         String vendor = getTrimmedText(etVendor);
@@ -410,11 +413,9 @@ public class AddEditAssetActivity extends AppCompatActivity {
         }
 
         if (TextUtils.isEmpty(inventoryNumber)) {
-            etInventoryNumber.setError("Inventarnummer ist ein Pflichtfeld");
-            if (!hasError) {
-                etInventoryNumber.requestFocus();
-            }
-            hasError = true;
+            inventoryNumber = dbHelper.generateNextInventoryNumber(prefsManager, selectedCategory, editingAssetId);
+            etInventoryNumber.setText(inventoryNumber);
+            etInventoryNumber.setError(null);
         } else if (dbHelper.isInventoryNumberTaken(inventoryNumber, editingAssetId)) {
             etInventoryNumber.setError("Inventarnummer ist bereits vergeben");
             if (!hasError) {
@@ -446,7 +447,7 @@ public class AddEditAssetActivity extends AppCompatActivity {
         Asset asset = existingAsset != null ? existingAsset : new Asset();
         asset.setName(name);
         asset.setInventoryNumber(inventoryNumber);
-        asset.setCategory(spCategory.getSelectedItem() != null ? spCategory.getSelectedItem().toString() : "Sonstiges");
+        asset.setCategory(selectedCategory);
         asset.setLocation(spLocation.getSelectedItem() != null ? spLocation.getSelectedItem().toString() : "Lager");
         asset.setMacAddress(normalizedMac);
         asset.setVendor(vendor);

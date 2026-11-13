@@ -16,6 +16,9 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import de.bkb.rackvault.R;
 import de.bkb.rackvault.data.CsvExporter;
 import de.bkb.rackvault.data.DatabaseHelper;
@@ -30,6 +33,8 @@ public class SettingsActivity extends AppCompatActivity {
     private TextInputEditText etAdminCode;
     private Spinner spDefaultLocation;
     private SwitchMaterial swWifiOnlyLookup;
+    private TextInputEditText etInvPatternGlobal;
+    private final Map<String, TextInputEditText> categoryPatternFields = new LinkedHashMap<>();
     private PrefsManager prefsManager;
     private DatabaseHelper dbHelper;
 
@@ -52,6 +57,13 @@ public class SettingsActivity extends AppCompatActivity {
         etAdminCode = findViewById(R.id.etAdminCode);
         spDefaultLocation = findViewById(R.id.spDefaultLocation);
         swWifiOnlyLookup = findViewById(R.id.swWifiOnlyLookup);
+        etInvPatternGlobal = findViewById(R.id.etInvPatternGlobal);
+        categoryPatternFields.put("Switch", findViewById(R.id.etInvPatternSwitch));
+        categoryPatternFields.put("Router", findViewById(R.id.etInvPatternRouter));
+        categoryPatternFields.put("Access Point", findViewById(R.id.etInvPatternAp));
+        categoryPatternFields.put("Laptop", findViewById(R.id.etInvPatternLaptop));
+        categoryPatternFields.put("Kabel/Zubehör", findViewById(R.id.etInvPatternCable));
+        categoryPatternFields.put("Sonstiges", findViewById(R.id.etInvPatternOther));
 
         MaterialButton btnSaveSettings = findViewById(R.id.btnSaveSettings);
         MaterialButton btnExportCsv = findViewById(R.id.btnExportCsv);
@@ -71,6 +83,10 @@ public class SettingsActivity extends AppCompatActivity {
         etAdminCode.setText(prefsManager.getAdminCode());
         swWifiOnlyLookup.setChecked(prefsManager.isWifiOnlyLookup());
         selectLocationSpinner(prefsManager.getDefaultLocation());
+        etInvPatternGlobal.setText(prefsManager.getGlobalInventoryPattern());
+        for (Map.Entry<String, TextInputEditText> entry : categoryPatternFields.entrySet()) {
+            entry.getValue().setText(prefsManager.getCategoryInventoryPattern(entry.getKey()));
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -89,9 +105,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void saveSettings() {
-        String adminCode = etAdminCode.getText() != null
-                ? etAdminCode.getText().toString().trim()
-                : "";
+        String adminCode = getTrimmedText(etAdminCode);
         if (TextUtils.isEmpty(adminCode)) {
             etAdminCode.setError("Bitte ein Admin-Kürzel angeben");
             etAdminCode.requestFocus();
@@ -99,13 +113,39 @@ public class SettingsActivity extends AppCompatActivity {
         }
         etAdminCode.setError(null);
 
+        String globalPattern = getTrimmedText(etInvPatternGlobal);
+        if (!PrefsManager.isValidInventoryPattern(globalPattern)) {
+            etInvPatternGlobal.setError("Mindestens ein * als Zähler erforderlich (z. B. IT-***)");
+            etInvPatternGlobal.requestFocus();
+            return;
+        }
+        etInvPatternGlobal.setError(null);
+
+        Map<String, String> categoryPatterns = new LinkedHashMap<>();
+        for (Map.Entry<String, TextInputEditText> entry : categoryPatternFields.entrySet()) {
+            TextInputEditText field = entry.getValue();
+            String value = getTrimmedText(field);
+            if (!TextUtils.isEmpty(value) && !PrefsManager.isValidInventoryPattern(value)) {
+                field.setError("Muster muss mindestens ein * enthalten (z. B. IT-***-SWT)");
+                field.requestFocus();
+                return;
+            }
+            field.setError(null);
+            categoryPatterns.put(entry.getKey(), value);
+        }
+
         String defaultLocation = spDefaultLocation.getSelectedItem() != null
                 ? spDefaultLocation.getSelectedItem().toString()
                 : PrefsManager.DEFAULT_LOCATION;
         boolean wifiOnly = swWifiOnlyLookup.isChecked();
 
         prefsManager.saveSettings(adminCode, defaultLocation, wifiOnly);
+        prefsManager.saveInventoryPatterns(globalPattern, categoryPatterns);
         Toast.makeText(this, "Einstellungen dauerhaft gespeichert", Toast.LENGTH_SHORT).show();
+    }
+
+    private static String getTrimmedText(TextInputEditText editText) {
+        return editText.getText() != null ? editText.getText().toString().trim() : "";
     }
 
     private void confirmLoadDemoData() {

@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import de.bkb.rackvault.data.PrefsManager;
 import de.bkb.rackvault.data.ProductCatalog;
 import de.bkb.rackvault.model.Asset;
 import de.bkb.rackvault.model.LoanLog;
@@ -166,6 +167,19 @@ public class AssetModelAndValidationTest {
                 }
             }
         }
+    }
+
+    @Test
+    public void inventoryNumberFormattingReplacesAsterisksWithZeroPaddedSequence() {
+        assertEquals("IT-010-SWT", PrefsManager.formatInventoryNumber("IT-***-SWT", 10));
+        assertEquals("IT-001-SWT", PrefsManager.formatInventoryNumber("IT-***-SWT", 1));
+        assertEquals("IT-1234-SWT", PrefsManager.formatInventoryNumber("IT-***-SWT", 1234));
+        assertEquals("RV-0042", PrefsManager.formatInventoryNumber("RV-****", 42));
+        assertEquals(10, PrefsManager.extractSequenceNumber("IT-***-SWT", "IT-010-SWT"));
+        assertEquals(-1, PrefsManager.extractSequenceNumber("IT-***-SWT", "IT-010-AP"));
+        assertTrue(PrefsManager.isValidInventoryPattern("IT-***-SWT"));
+        assertFalse(PrefsManager.isValidInventoryPattern("IT-SWT"));
+        assertFalse(PrefsManager.isValidInventoryPattern(""));
     }
 
     private Set<String> collectLabels(ProductCatalog.CatalogNode parent) {

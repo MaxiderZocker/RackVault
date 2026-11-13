@@ -38,7 +38,7 @@
     <string name="prompt_tree_category">— Produktbereich wählen —</string>
     <string name="prompt_tree_series">— Produktserie wählen —</string>
     <string name="prompt_tree_model">— Modell wählen —</string>
-    <string name="hint_inventory_number">Inventarnummer * (z. B. IT-SW-014)</string>
+    <string name="hint_inventory_number">Inventarnummer (leer = automatisch fortlaufend)</string>
     <string name="label_category">Kategorie</string>
     <string name="label_location">Standort</string>
     <string name="hint_mac_address">MAC-Adresse (optional, z. B. 00:1A:2B:3C:4D:5E)</string>
@@ -70,6 +70,15 @@
     <string name="hint_admin_code">Admin-Kürzel (z. B. ADM)</string>
     <string name="label_default_location">Standard-Standort bei Neuanlage</string>
     <string name="switch_wifi_only_label">MAC-Lookup nur bei aktiver WLAN-Verbindung</string>
+    <string name="section_inv_pattern_title">Fortlaufende Inventarnummer (* = Zähler)</string>
+    <string name="inv_pattern_description">Wird beim Anlegen keine Inventarnummer eingetragen, wird sie automatisch erzeugt. Die Anzahl der * bestimmt die Stellen mit führenden Nullen (z. B. IT-***-SWT wird beim 10. Gerät zu IT-010-SWT). Bleibt ein Kategoriefeld leer, gilt das globale Format.</string>
+    <string name="hint_inv_pattern_global">Globales Format * (Fallback, z. B. IT-***)</string>
+    <string name="hint_inv_pattern_switch">Switch (optional, z. B. IT-***-SWT)</string>
+    <string name="hint_inv_pattern_router">Router (optional, z. B. IT-***-RTR)</string>
+    <string name="hint_inv_pattern_ap">Access Point (optional, z. B. IT-***-AP)</string>
+    <string name="hint_inv_pattern_laptop">Laptop (optional, z. B. IT-***-NB)</string>
+    <string name="hint_inv_pattern_cable">Kabel/Zubehör (optional, z. B. IT-***-ZUB)</string>
+    <string name="hint_inv_pattern_other">Sonstiges (optional, z. B. IT-***-DIV)</string>
     <string name="btn_save_settings">Einstellungen speichern</string>
     <string name="section_export_title">Inventur-Export (CSV)</string>
     <string name="export_description">Exportiert das gesamte Inventar als UTF-8-CSV-Datei in den Gerätespeicher (Downloads) inkl. Option zum direkten Teilen.</string>
