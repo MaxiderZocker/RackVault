@@ -16,6 +16,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 
 import de.bkb.rackvault.R;
+import de.bkb.rackvault.data.PrefsManager;
 import de.bkb.rackvault.model.Asset;
 
 /**
@@ -34,6 +35,7 @@ public class AddEditAssetActivity extends AppCompatActivity {
     private TextInputEditText etVendor;
     private SwitchMaterial swDefect;
     private TextInputEditText etNotes;
+    private PrefsManager prefsManager;
 
     private long editingAssetId = -1L;
     private Asset existingAsset;
@@ -48,6 +50,8 @@ public class AddEditAssetActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
+
+        prefsManager = new PrefsManager(this);
 
         rootAddEdit = findViewById(R.id.rootAddEdit);
         etAssetName = findViewById(R.id.etAssetName);
@@ -71,8 +75,11 @@ public class AddEditAssetActivity extends AppCompatActivity {
                 }
                 populateForm(existingAsset);
             }
-        } else if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle(R.string.title_add_asset);
+        } else {
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setTitle(R.string.title_add_asset);
+            }
+            selectSpinnerValue(spLocation, prefsManager.getDefaultLocation());
         }
 
         btnLookupVendor.setOnClickListener(v -> handleMacLookupClick());
@@ -112,8 +119,9 @@ public class AddEditAssetActivity extends AppCompatActivity {
             return;
         }
         etMacAddress.setError(null);
+        String wifiInfo = prefsManager.isWifiOnlyLookup() ? " (nur WLAN aktiv)" : " (WLAN & Mobilfunk)";
         Snackbar.make(rootAddEdit,
-                "MAC-Vendor-Lookup über api.macvendors.com wird in DS 7 angebunden.",
+                "MAC-Vendor-Lookup über api.macvendors.com wird in DS 7 angebunden" + wifiInfo + ".",
                 Snackbar.LENGTH_SHORT).show();
     }
 

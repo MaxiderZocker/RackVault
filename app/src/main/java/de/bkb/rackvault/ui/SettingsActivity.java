@@ -3,6 +3,7 @@ package de.bkb.rackvault.ui;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -16,9 +17,10 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 
 import de.bkb.rackvault.R;
+import de.bkb.rackvault.data.PrefsManager;
 
 /**
- * Einstellungs-Activity für Standardwerte (SharedPreferences in DS 4), CSV-Export (DS 6) und DB-Wartung.
+ * Einstellungs-Activity für Standardwerte (SharedPreferences), CSV-Export (DS 6) und DB-Wartung.
  */
 public class SettingsActivity extends AppCompatActivity {
 
@@ -26,6 +28,7 @@ public class SettingsActivity extends AppCompatActivity {
     private TextInputEditText etAdminCode;
     private Spinner spDefaultLocation;
     private SwitchMaterial swWifiOnlyLookup;
+    private PrefsManager prefsManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +41,8 @@ public class SettingsActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
+        prefsManager = new PrefsManager(this);
+
         rootSettings = findViewById(R.id.rootSettings);
         etAdminCode = findViewById(R.id.etAdminCode);
         spDefaultLocation = findViewById(R.id.spDefaultLocation);
@@ -48,12 +53,7 @@ public class SettingsActivity extends AppCompatActivity {
         MaterialButton btnLoadDemoData = findViewById(R.id.btnLoadDemoData);
         MaterialButton btnResetDatabase = findViewById(R.id.btnResetDatabase);
 
-        // Initialwerte für den Prototyp (werden in DS 4 über PrefsManager geladen)
-        etAdminCode.setText("ADM");
-        swWifiOnlyLookup.setChecked(true);
-        if (spDefaultLocation.getCount() > 1) {
-            spDefaultLocation.setSelection(1); // "Lager"
-        }
+        loadCurrentSettings();
 
         btnSaveSettings.setOnClickListener(v -> saveSettings());
         btnExportCsv.setOnClickListener(v -> Snackbar.make(rootSettings,
@@ -61,6 +61,27 @@ public class SettingsActivity extends AppCompatActivity {
                 Snackbar.LENGTH_SHORT).show());
         btnLoadDemoData.setOnClickListener(v -> confirmLoadDemoData());
         btnResetDatabase.setOnClickListener(v -> confirmResetDatabase());
+    }
+
+    private void loadCurrentSettings() {
+        etAdminCode.setText(prefsManager.getAdminCode());
+        swWifiOnlyLookup.setChecked(prefsManager.isWifiOnlyLookup());
+        selectLocationSpinner(prefsManager.getDefaultLocation());
+    }
+
+    @SuppressWarnings("unchecked")
+    private void selectLocationSpinner(String location) {
+        if (location == null || spDefaultLocation.getAdapter() == null) {
+            return;
+        }
+        ArrayAdapter<CharSequence> adapter = (ArrayAdapter<CharSequence>) spDefaultLocation.getAdapter();
+        for (int i = 0; i < adapter.getCount(); i++) {
+            CharSequence item = adapter.getItem(i);
+            if (item != null && location.equals(item.toString())) {
+                spDefaultLocation.setSelection(i);
+                return;
+            }
+        }
     }
 
     private void saveSettings() {
@@ -73,7 +94,14 @@ public class SettingsActivity extends AppCompatActivity {
             return;
         }
         etAdminCode.setError(null);
-        Toast.makeText(this, "Einstellungen gespeichert (DS 4 ergänzt Persistenz)", Toast.LENGTH_SHORT).show();
+
+        String defaultLocation = spDefaultLocation.getSelectedItem() != null
+                ? spDefaultLocation.getSelectedItem().toString()
+                : PrefsManager.DEFAULT_LOCATION;
+        boolean wifiOnly = swWifiOnlyLookup.isChecked();
+
+        prefsManager.saveSettings(adminCode, defaultLocation, wifiOnly);
+        Toast.makeText(this, "Einstellungen dauerhaft gespeichert", Toast.LENGTH_SHORT).show();
     }
 
     private void confirmLoadDemoData() {

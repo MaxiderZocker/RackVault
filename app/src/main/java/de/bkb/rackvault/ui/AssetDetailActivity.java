@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.bkb.rackvault.R;
+import de.bkb.rackvault.data.PrefsManager;
 import de.bkb.rackvault.model.Asset;
 import de.bkb.rackvault.model.LoanLog;
 
@@ -47,6 +48,7 @@ public class AssetDetailActivity extends AppCompatActivity {
     private MaterialButton btnBorrowOrReturn;
     private LoanLogAdapter loanLogAdapter;
     private final List<LoanLog> loanLogs = new ArrayList<>();
+    private PrefsManager prefsManager;
 
     private long assetId = -1L;
     private Asset currentAsset;
@@ -61,6 +63,8 @@ public class AssetDetailActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
+
+        prefsManager = new PrefsManager(this);
 
         rootDetail = findViewById(R.id.rootDetail);
         tvDetailName = findViewById(R.id.tvDetailName);
@@ -153,7 +157,7 @@ public class AssetDetailActivity extends AppCompatActivity {
             return;
         }
         if (Asset.STATUS_AUSGELIEHEN.equals(currentAsset.getStatus())) {
-            MainActivity.returnAsset(currentAsset.getId(), "ADM");
+            MainActivity.returnAsset(currentAsset.getId(), prefsManager.getAdminCode());
             loadAssetDetails();
             Snackbar.make(rootDetail, "Rückgabe verbucht.", Snackbar.LENGTH_SHORT).show();
         } else if (Asset.STATUS_VERFUEGBAR.equals(currentAsset.getStatus())) {
@@ -189,7 +193,7 @@ public class AssetDetailActivity extends AppCompatActivity {
                     return;
                 }
 
-                MainActivity.borrowAsset(currentAsset.getId(), borrower, comment, "ADM");
+                MainActivity.borrowAsset(currentAsset.getId(), borrower, comment, prefsManager.getAdminCode());
                 dialog.dismiss();
                 loadAssetDetails();
                 Snackbar.make(rootDetail, "Ausgeliehen an " + borrower, Snackbar.LENGTH_SHORT).show();
