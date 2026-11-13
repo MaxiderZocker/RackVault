@@ -2,12 +2,19 @@ package de.bkb.rackvault;
 
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import de.bkb.rackvault.data.ProductCatalog;
 import de.bkb.rackvault.model.Asset;
 import de.bkb.rackvault.model.LoanLog;
 import de.bkb.rackvault.ui.AddEditAssetActivity;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -61,5 +68,41 @@ public class AssetModelAndValidationTest {
         assertFalse(AddEditAssetActivity.isValidMacAddress(""));
         assertFalse(AddEditAssetActivity.isValidMacAddress("A2:3"));
         assertFalse(AddEditAssetActivity.isValidMacAddress("00:1A:2B:3C:4D:ZZ"));
+    }
+
+    @Test
+    public void productCatalogContainsUbiquitiTreeStructure() {
+        List<ProductCatalog.CatalogNode> manufacturers = ProductCatalog.getManufacturers();
+        assertFalse(manufacturers.isEmpty());
+
+        ProductCatalog.CatalogNode ubiquiti = null;
+        for (ProductCatalog.CatalogNode node : manufacturers) {
+            if ("Ubiquiti".equals(node.getLabel())) {
+                ubiquiti = node;
+                break;
+            }
+        }
+        assertNotNull(ubiquiti);
+        assertEquals("Ubiquiti Inc.", ubiquiti.getDefaultVendor());
+        assertEquals(5, ubiquiti.getChildren().size());
+
+        Set<String> validCategories = new HashSet<>(Arrays.asList(
+                "Switch", "Router", "Access Point", "Laptop", "Kabel/Zubehör", "Sonstiges"
+        ));
+
+        for (ProductCatalog.CatalogNode category : ubiquiti.getChildren()) {
+            assertFalse(category.isLeaf());
+            assertTrue(validCategories.contains(category.getDefaultCategory()));
+            for (ProductCatalog.CatalogNode series : category.getChildren()) {
+                assertFalse(series.isLeaf());
+                for (ProductCatalog.CatalogNode model : series.getChildren()) {
+                    assertTrue(model.isLeaf());
+                    assertNotNull(model.getFullAssetName());
+                    assertFalse(model.getFullAssetName().trim().isEmpty());
+                    assertEquals("Ubiquiti Inc.", model.getDefaultVendor());
+                    assertTrue(validCategories.contains(model.getDefaultCategory()));
+                }
+            }
+        }
     }
 }

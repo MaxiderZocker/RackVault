@@ -5,6 +5,7 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -19,12 +20,16 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
 import de.bkb.rackvault.R;
 import de.bkb.rackvault.data.DatabaseHelper;
 import de.bkb.rackvault.data.PrefsManager;
+import de.bkb.rackvault.data.ProductCatalog;
 import de.bkb.rackvault.model.Asset;
 import de.bkb.rackvault.network.MacVendorClient;
 
@@ -39,6 +44,13 @@ public class AddEditAssetActivity extends AppCompatActivity {
 
     private View rootAddEdit;
     private TextInputEditText etAssetName;
+    private Spinner spTreeManufacturer;
+    private Spinner spTreeCategory;
+    private Spinner spTreeSeries;
+    private Spinner spTreeModel;
+    private View layoutTreeCategory;
+    private View layoutTreeSeries;
+    private View layoutTreeModel;
     private TextInputEditText etInventoryNumber;
     private Spinner spCategory;
     private Spinner spLocation;
@@ -71,6 +83,13 @@ public class AddEditAssetActivity extends AppCompatActivity {
         rootAddEdit = findViewById(R.id.rootAddEdit);
         UiUtils.setupSystemBars(this, rootAddEdit, toolbar);
         etAssetName = findViewById(R.id.etAssetName);
+        spTreeManufacturer = findViewById(R.id.spTreeManufacturer);
+        spTreeCategory = findViewById(R.id.spTreeCategory);
+        spTreeSeries = findViewById(R.id.spTreeSeries);
+        spTreeModel = findViewById(R.id.spTreeModel);
+        layoutTreeCategory = findViewById(R.id.layoutTreeCategory);
+        layoutTreeSeries = findViewById(R.id.layoutTreeSeries);
+        layoutTreeModel = findViewById(R.id.layoutTreeModel);
         etInventoryNumber = findViewById(R.id.etInventoryNumber);
         spCategory = findViewById(R.id.spCategory);
         spLocation = findViewById(R.id.spLocation);
@@ -99,9 +118,151 @@ public class AddEditAssetActivity extends AppCompatActivity {
             selectSpinnerValue(spLocation, prefsManager.getDefaultLocation());
         }
 
+        setupProductCatalogTree();
         setupMacAddressFormatter();
         btnLookupVendor.setOnClickListener(v -> handleMacLookupClick());
         btnSaveAsset.setOnClickListener(v -> saveForm());
+    }
+
+    /**
+     * Richtet die stufenweise aufklappende Produktbaum-Auswahl (Hersteller -> Produktbereich ->
+     * Serie -> Gerätemodell) ein. Das Textfeld {@code etAssetName} bleibt parallel jederzeit frei editierbar.
+     */
+    private void setupProductCatalogTree() {
+        List<ProductCatalog.CatalogNode> manufacturers = ProductCatalog.getManufacturers();
+        populateTreeSpinner(spTreeManufacturer, getString(R.string.prompt_tree_custom), manufacturers);
+
+        spTreeManufacturer.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position <= 0) {
+                    hideTreeLevels(layoutTreeCategory, layoutTreeSeries, layoutTreeModel);
+                    return;
+                }
+                ProductCatalog.CatalogNode manufacturer = manufacturers.get(position - 1);
+                if (TextUtils.isEmpty(getTrimmedText(etVendor)) && manufacturer.getDefaultVendor() != null) {
+                    etVendor.setText(manufacturer.getDefaultVendor());
+                }
+                populateTreeSpinner(spTreeCategory, getString(R.string.prompt_tree_category), manufacturer.getChildren());
+                layoutTreeCategory.setVisibility(View.VISIBLE);
+                hideTreeLevels(layoutTreeSeries, layoutTreeModel);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                hideTreeLevels(layoutTreeCategory, layoutTreeSeries, layoutTreeModel);
+            }
+        });
+
+        spTreeCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position <= 0) {
+                    hideTreeLevels(layoutTreeSeries, layoutTreeModel);
+                    return;
+                }
+                ProductCatalog.CatalogNode manufacturer = getSelectedCatalogNode(spTreeManufacturer, manufacturers);
+                if (manufacturer == null || position - 1 >= manufacturer.getChildren().size()) {
+                    hideTreeLevels(layoutTreeSeries, layoutTreeModel);
+                    return;
+                }
+                ProductCatalog.CatalogNode categoryNode = manufacturer.getChildren().get(position - 1);
+                selectSpinnerValue(spCategory, categoryNode.getDefaultCategory());
+                populateTreeSpinner(spTreeSeries, getString(R.string.prompt_tree_series), categoryNode.getChildren());
+                layoutTreeSeries.setVisibility(View.VISIBLE);
+                hideTreeLevels(layoutTreeModel);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                hideTreeLevels(layoutTreeSeries, layoutTreeModel);
+            }
+        });
+
+        spTreeSeries.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position <= 0) {
+                    hideTreeLevels(layoutTreeModel);
+                    return;
+                }
+                ProductCatalog.CatalogNode manufacturer = getSelectedCatalogNode(spTreeManufacturer, manufacturers);
+                ProductCatalog.CatalogNode categoryNode = getSelectedCatalogNode(spTreeCategory,
+                        manufacturer != null ? manufacturer.getChildren() : Collections.emptyList());
+                if (categoryNode == null) {
+                    hideTreeLevels(layoutTreeModel);
+                    return;
+                }
+                ProductCatalog.CatalogNode seriesNode = categoryNode.getChildren().get(position - 1);
+                populateTreeSpinner(spTreeModel, getString(R.string.prompt_tree_model), seriesNode.getChildren());
+                layoutTreeModel.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                hideTreeLevels(layoutTreeModel);
+            }
+        });
+
+        spTreeModel.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position <= 0) {
+                    return;
+                }
+                ProductCatalog.CatalogNode manufacturer = getSelectedCatalogNode(spTreeManufacturer, manufacturers);
+                ProductCatalog.CatalogNode categoryNode = getSelectedCatalogNode(spTreeCategory,
+                        manufacturer != null ? manufacturer.getChildren() : Collections.emptyList());
+                ProductCatalog.CatalogNode seriesNode = getSelectedCatalogNode(spTreeSeries,
+                        categoryNode != null ? categoryNode.getChildren() : Collections.emptyList());
+                if (seriesNode == null || position - 1 >= seriesNode.getChildren().size()) {
+                    return;
+                }
+                ProductCatalog.CatalogNode modelNode = seriesNode.getChildren().get(position - 1);
+                String assetName = modelNode.getFullAssetName() != null
+                        ? modelNode.getFullAssetName()
+                        : modelNode.getLabel();
+                etAssetName.setText(assetName);
+                etAssetName.setSelection(assetName.length());
+                etAssetName.setError(null);
+
+                if (modelNode.getDefaultVendor() != null) {
+                    etVendor.setText(modelNode.getDefaultVendor());
+                }
+                if (modelNode.getDefaultCategory() != null) {
+                    selectSpinnerValue(spCategory, modelNode.getDefaultCategory());
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+    }
+
+    private void populateTreeSpinner(Spinner spinner, String placeholder, List<ProductCatalog.CatalogNode> nodes) {
+        List<String> items = new ArrayList<>(nodes.size() + 1);
+        items.add(placeholder);
+        for (ProductCatalog.CatalogNode node : nodes) {
+            items.add(node.getLabel());
+        }
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, items);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+    }
+
+    private ProductCatalog.CatalogNode getSelectedCatalogNode(Spinner spinner, List<ProductCatalog.CatalogNode> nodes) {
+        int pos = spinner.getSelectedItemPosition();
+        if (pos <= 0 || pos - 1 >= nodes.size()) {
+            return null;
+        }
+        return nodes.get(pos - 1);
+    }
+
+    private void hideTreeLevels(View... views) {
+        for (View v : views) {
+            v.setVisibility(View.GONE);
+        }
     }
 
     /**

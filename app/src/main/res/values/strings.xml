@@ -29,6 +29,15 @@
 
     <!-- AddEditAssetActivity -->
     <string name="hint_asset_name">Gerätename * (z. B. HP ProCurve 2530-24G)</string>
+    <string name="label_product_catalog_tree">Gerätevorlage wählen (oder oben frei eintippen)</string>
+    <string name="label_tree_manufacturer">Hersteller / Katalog</string>
+    <string name="label_tree_category">├─ Produktbereich</string>
+    <string name="label_tree_series">├─ Produktserie</string>
+    <string name="label_tree_model">└─ Gerätemodell</string>
+    <string name="prompt_tree_custom">— Eigene Eingabe (Freitext) —</string>
+    <string name="prompt_tree_category">— Produktbereich wählen —</string>
+    <string name="prompt_tree_series">— Produktserie wählen —</string>
+    <string name="prompt_tree_model">— Modell wählen —</string>
     <string name="hint_inventory_number">Inventarnummer * (z. B. IT-SW-014)</string>
     <string name="label_category">Kategorie</string>
     <string name="label_location">Standort</string>
